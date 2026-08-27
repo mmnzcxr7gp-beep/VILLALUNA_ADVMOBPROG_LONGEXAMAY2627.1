@@ -1,0 +1,40 @@
+name: villaluna_advmobprog_longexam1
+description: 'A new Flutter project.'
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cached_network_image: ^3.4.1
+  carousel_slider: ^5.0.0
+  flutter_dotenv: ^5.2.1
+  flutter_screenutil: ^5.9.3
+  http: ^1.2.2
+  provider: ^6.1.2
+  shared_preferences: ^2.3.2
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/icons/
+    - assets/images/
+    - assets/.env
+
+  fonts:
+    - family: Klavika
+      fonts:
+        - asset: assets/fonts/KlavikaBoldBold.otf
+    - family: Frutiger
+      fonts:
+        - asset: assets/fonts/FrutigerLTStd-Roman.otf
