@@ -71,6 +71,7 @@ class PostService {
 
   Future<List<Post>> getPostsByUserId(int userId) async {
     final uri = Uri.parse('$host/posts/user/$userId');
+    final localUserPosts = _createdPostsForUser(userId);
     try {
       final response = await _client
           .get(uri, headers: {'Content-Type': 'application/json'})
@@ -86,9 +87,11 @@ class PostService {
           ...userPosts,
         ];
       } else {
+        if (localUserPosts.isNotEmpty) return localUserPosts;
         throw Exception('Failed to load user posts: ${response.statusCode}');
       }
     } catch (e) {
+      if (localUserPosts.isNotEmpty) return localUserPosts;
       rethrow;
     }
   }
