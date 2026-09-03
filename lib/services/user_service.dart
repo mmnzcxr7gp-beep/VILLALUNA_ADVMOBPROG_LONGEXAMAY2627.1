@@ -11,6 +11,24 @@ class UserService {
 
   UserService({http.Client? client}) : _client = client ?? http.Client();
 
+  static List<User>? _cachedUsers;
+  static final Map<int, String> _knownUserNames = {
+    1: 'Emily Johnson',
+    2: 'Michael Williams',
+    3: 'Sophia Brown',
+    4: 'James Davis',
+    5: 'Emma Miller',
+    6: 'Olivia Wilson',
+    7: 'Alexander Jones',
+    8: 'Ava Taylor',
+    9: 'Ethan Martinez',
+    10: 'Isabella Anderson',
+  };
+
+  static String getUserNameById(int id) {
+    return _knownUserNames[id] ?? 'Student #$id';
+  }
+
   /// Authenticates user against DummyJSON Auth API endpoint (`$host/auth/login`).
   Future<User> login({
     required String username,
@@ -39,42 +57,29 @@ class UserService {
               'expiresInMins': 60,
             }),
           )
-          .timeout(const Duration(seconds: 12));
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         User user = User.fromJson(data);
 
-        // Try enriching profile details if available
-        if (user.id > 0) {
-          try {
-            final fullProfile = await getUserById(user.id);
-            user = user.copyWith(
-              phone: fullProfile.phone.isNotEmpty
-                  ? fullProfile.phone
-                  : user.phone,
-              gender: fullProfile.gender.isNotEmpty
-                  ? fullProfile.gender
-                  : user.gender,
-              email: fullProfile.email.isNotEmpty
-                  ? fullProfile.email
-                  : user.email,
-              firstName: fullProfile.firstName.isNotEmpty
-                  ? fullProfile.firstName
-                  : user.firstName,
-              lastName: fullProfile.lastName.isNotEmpty
-                  ? fullProfile.lastName
-                  : user.lastName,
-              image: fullProfile.image.isNotEmpty
-                  ? fullProfile.image
-                  : user.image,
-              role: 'CCIT Student',
-              department: 'College of Computing and Information Technologies',
-              university: 'National University',
-            );
-          } catch (_) {}
+        // Populate CCIT institution details directly from login
+        user = user.copyWith(
+          role: user.role.isNotEmpty ? user.role : 'CCIT Student',
+          department: user.department.isNotEmpty
+              ? user.department
+              : 'College of Computing and Information Technologies',
+          university: user.university.isNotEmpty
+              ? user.university
+              : 'National University',
+        );
+
+        // Cache user info immediately
+        if (user.id > 0 && user.fullName.isNotEmpty) {
+          _knownUserNames[user.id] = user.fullName;
         }
 
+        // Save session instantly
         await saveUserSession(user);
         return user;
       } else if (response.statusCode == 400 || response.statusCode == 401) {
@@ -135,19 +140,30 @@ class UserService {
     }
   }
 
-  /// Retrieves list of users for avatars/stories
-  Future<List<User>> getUsers({int limit = 30}) async {
+  /// Retrieves list of users for avatars/stories with in-memory caching
+  Future<List<User>> getUsers({int limit = 30, bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedUsers != null && _cachedUsers!.isNotEmpty) {
+      return _cachedUsers!;
+    }
+
     final Uri url = Uri.parse('$host/users?limit=$limit');
     try {
-      final response = await _client.get(url).timeout(const Duration(seconds: 10));
+      final response = await _client.get(url).timeout(const Duration(seconds: 8));
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final List usersJson = data['users'] ?? [];
-        return usersJson.map((u) => User.fromJson(u)).toList();
+        final list = usersJson.map((u) => User.fromJson(u)).toList();
+        _cachedUsers = list;
+        for (final u in list) {
+          if (u.id > 0 && u.fullName.isNotEmpty) {
+            _knownUserNames[u.id] = u.fullName;
+          }
+        }
+        return list;
       }
-      return [];
+      return _cachedUsers ?? [];
     } catch (_) {
-      return [];
+      return _cachedUsers ?? [];
     }
   }
 

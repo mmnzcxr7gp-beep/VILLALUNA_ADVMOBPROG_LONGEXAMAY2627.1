@@ -19,8 +19,8 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController(text: 'emilys');
-  final _passwordController = TextEditingController(text: 'emilyspass');
+  final _usernameController = TextEditingController(text: 'sophiab');
+  final _passwordController = TextEditingController(text: 'sophiabpass');
   final UserService _userService = UserService();
   bool _isLoading = false;
 
@@ -246,17 +246,17 @@ class _SignInScreenState extends State<SignInScreen> {
                             Expanded(
                               child: OutlinedButton(
                                 onPressed: () =>
-                                    _fillAccount('emilys', 'emilyspass'),
+                                    _fillAccount('sophiab', 'sophiabpass'),
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
-                                      vertical: 6, horizontal: 8),
+                                      vertical: 8, horizontal: 8),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                 ),
                                 child: const CustomFont.frutiger(
-                                  text: 'emilys',
-                                  fontSize: 12,
+                                  text: 'Sophia (sophiab)',
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -265,17 +265,59 @@ class _SignInScreenState extends State<SignInScreen> {
                             Expanded(
                               child: OutlinedButton(
                                 onPressed: () =>
-                                    _fillAccount('michaelw', 'michaelwpass'),
+                                    _fillAccount('jamesd', 'jamesdpass'),
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
-                                      vertical: 6, horizontal: 8),
+                                      vertical: 8, horizontal: 8),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                 ),
                                 child: const CustomFont.frutiger(
-                                  text: 'michaelw',
-                                  fontSize: 12,
+                                  text: 'James (jamesd)',
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () =>
+                                    _fillAccount('oliviaw', 'oliviawpass'),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 8),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                ),
+                                child: const CustomFont.frutiger(
+                                  text: 'Olivia (oliviaw)',
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () =>
+                                    _fillAccount('alexanderj', 'alexanderjpass'),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 8),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                ),
+                                child: const CustomFont.frutiger(
+                                  text: 'Alexander (alexanderj)',
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),

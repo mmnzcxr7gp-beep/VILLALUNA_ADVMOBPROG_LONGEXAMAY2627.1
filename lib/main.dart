@@ -109,8 +109,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkSavedAuthentication() async {
-    // Elegant splash display duration
-    await Future.delayed(const Duration(milliseconds: 1600));
+    // Fast, smooth splash display duration
+    await Future.delayed(const Duration(milliseconds: 400));
 
     if (!mounted) return;
 

@@ -4,6 +4,7 @@ import '../constants.dart';
 import '../models/post.dart';
 import '../models/user.dart';
 import '../screens/detail_screen.dart';
+import '../services/user_service.dart';
 import 'custom_dialogs.dart';
 import 'custom_font.dart';
 import 'custom_inkwell_button.dart';
@@ -85,7 +86,10 @@ class _PostCardState extends State<PostCard> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final authorName = 'User #${widget.post.userId}';
+    final authorName = (widget.currentUser != null &&
+            widget.post.userId == widget.currentUser!.id)
+        ? widget.currentUser!.fullName
+        : UserService.getUserNameById(widget.post.userId);
     final userAvatarUrl = 'https://i.pravatar.cc/150?u=${widget.post.userId}';
 
     return Container(

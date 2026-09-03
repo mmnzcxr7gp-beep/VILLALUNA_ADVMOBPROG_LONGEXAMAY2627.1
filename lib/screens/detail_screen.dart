@@ -5,6 +5,7 @@ import '../models/comment.dart';
 import '../models/post.dart';
 import '../models/user.dart';
 import '../services/comment_service.dart';
+import '../services/user_service.dart';
 import '../widgets/custom_dialogs.dart';
 import '../widgets/custom_font.dart';
 import '../widgets/custom_inkwell_button.dart';
@@ -236,7 +237,12 @@ class _DetailScreenState extends State<DetailScreen> {
                                       CrossAxisAlignment.start,
                                   children: [
                                     CustomFont.klavika(
-                                      text: 'User #${widget.post.userId}',
+                                      text: (widget.currentUser != null &&
+                                              widget.post.userId ==
+                                                  widget.currentUser!.id)
+                                          ? widget.currentUser!.fullName
+                                          : UserService.getUserNameById(
+                                              widget.post.userId),
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: isDark

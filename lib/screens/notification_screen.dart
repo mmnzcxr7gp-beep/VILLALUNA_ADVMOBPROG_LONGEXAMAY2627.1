@@ -52,7 +52,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ),
       NotificationItem(
         id: '2',
-        title: 'Emily Johnson',
+        title: 'James Davis',
         description: 'liked your recent post in the SYNERTECH community feed.',
         timeAgo: '1h ago',
         icon: Icons.thumb_up,
@@ -61,7 +61,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ),
       NotificationItem(
         id: '3',
-        title: 'Michael Williams',
+        title: 'Olivia Wilson',
         description: 'commented: "Great implementation on the project!"',
         timeAgo: '3h ago',
         icon: Icons.chat_bubble,
@@ -70,7 +70,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ),
       NotificationItem(
         id: '4',
-        title: 'Sophia Brown',
+        title: 'Alexander Jones',
         description: 'started following your SYNERTECH developer profile.',
         timeAgo: '5h ago',
         icon: Icons.person_add_rounded,
@@ -79,7 +79,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ),
       NotificationItem(
         id: '5',
-        title: 'Alexander Jones',
+        title: 'Ethan Martinez',
         description: 'shared your post to the main discussion board.',
         timeAgo: '1d ago',
         icon: Icons.share_rounded,
