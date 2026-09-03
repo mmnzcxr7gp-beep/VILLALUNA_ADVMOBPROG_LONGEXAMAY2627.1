@@ -20,36 +20,93 @@ class NewsfeedScreen extends StatefulWidget {
 }
 
 class _NewsfeedScreenState extends State<NewsfeedScreen> {
+  static const _pageSize = 30;
+  static const _maxWallPosts = 100;
+
   final PostService _postService = PostService();
   final UserService _userService = UserService();
+  final ScrollController _scrollController = ScrollController();
 
   List<Post> _posts = [];
+  final List<Post> _localPosts = [];
   List<User> _suggestedUsers = [];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMorePosts = true;
+  int _nextApiSkip = 0;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_handleScroll);
     _fetchFeedData();
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    if (!_scrollController.hasClients ||
+        _isLoading ||
+        _isLoadingMore ||
+        !_hasMorePosts) {
+      return;
+    }
+
+    if (_scrollController.position.extentAfter < 500) {
+      _loadMorePosts();
+    }
+  }
+
+  List<Post> _withoutDuplicates(Iterable<Post> posts) {
+    final seenIds = <int>{};
+    return posts.where((post) => seenIds.add(post.id)).toList();
   }
 
   Future<void> _fetchFeedData() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _hasMorePosts = true;
     });
 
     try {
-      final postsFuture = _postService.getPosts(limit: 30);
+      final postsFuture = _postService.getPosts(
+        limit: _pageSize,
+        forceRefresh: true,
+      );
       final usersFuture = _userService.getUsers(limit: 10);
 
       final results = await Future.wait([postsFuture, usersFuture]);
+      final firstPage = results[0] as List<Post>;
+      var userPosts = <Post>[];
+      if (widget.currentUser != null) {
+        try {
+          userPosts = await _postService.getPostsByUserId(widget.currentUser!.id);
+        } catch (_) {
+          // The main feed remains available if the user-post request fails.
+        }
+      }
+
+      final mergedPosts = _withoutDuplicates([
+        ..._localPosts,
+        ...userPosts,
+        ...firstPage,
+      ]);
       if (mounted) {
         setState(() {
-          _posts = results[0] as List<Post>;
+          _posts = mergedPosts.take(_maxWallPosts).toList();
           _suggestedUsers = results[1] as List<User>;
           _isLoading = false;
+            _nextApiSkip = firstPage.length;
+          _hasMorePosts = _posts.length < _maxWallPosts &&
+              firstPage.length == _pageSize;
         });
       }
     } catch (e) {
@@ -58,6 +115,36 @@ class _NewsfeedScreenState extends State<NewsfeedScreen> {
           _errorMessage = e.toString();
           _isLoading = false;
         });
+      }
+    }
+  }
+
+  Future<void> _loadMorePosts() async {
+    if (_isLoadingMore || !_hasMorePosts || _posts.length >= _maxWallPosts) {
+      return;
+    }
+
+    setState(() => _isLoadingMore = true);
+    try {
+      final nextPage = await _postService.getPosts(
+        limit: _pageSize,
+        skip: _nextApiSkip,
+      );
+      if (!mounted) return;
+
+      setState(() {
+        _posts = _withoutDuplicates([
+          ..._posts,
+          ...nextPage,
+        ]).take(_maxWallPosts).toList();
+        _nextApiSkip += nextPage.length;
+        _isLoadingMore = false;
+        _hasMorePosts = _posts.length < _maxWallPosts &&
+            nextPage.length == _pageSize;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isLoadingMore = false);
       }
     }
   }
@@ -79,7 +166,9 @@ class _NewsfeedScreenState extends State<NewsfeedScreen> {
 
         if (mounted) {
           setState(() {
+            _localPosts.insert(0, newPost);
             _posts.insert(0, newPost);
+            _posts = _withoutDuplicates(_posts).take(_maxWallPosts).toList();
           });
           CustomDialogs.showSnackBar(
             context,
@@ -102,7 +191,9 @@ class _NewsfeedScreenState extends State<NewsfeedScreen> {
 
         if (mounted) {
           setState(() {
+            _localPosts.insert(0, fallbackPost);
             _posts.insert(0, fallbackPost);
+            _posts = _withoutDuplicates(_posts).take(_maxWallPosts).toList();
           });
           CustomDialogs.showSnackBar(
             context,
@@ -122,6 +213,7 @@ class _NewsfeedScreenState extends State<NewsfeedScreen> {
       onRefresh: _fetchFeedData,
       color: AppColors.nuBlue,
       child: CustomScrollView(
+        controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           // Create Post Header Box
@@ -357,13 +449,32 @@ class _NewsfeedScreenState extends State<NewsfeedScreen> {
             SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
+                  if (index == _posts.length) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: _isLoadingMore
+                            ? const CircularProgressIndicator()
+                            : CustomFont.frutiger(
+                                text: _hasMorePosts
+                                    ? 'Loading more posts...'
+                                    : 'You have reached the latest 100 posts.',
+                                fontSize: 12,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondary,
+                              ),
+                      ),
+                    );
+                  }
+
                   final post = _posts[index];
                   return PostCard(
                     post: post,
                     currentUser: widget.currentUser,
                   );
                 },
-                childCount: _posts.length,
+                childCount: _posts.length + 1,
               ),
             ),
         ],
