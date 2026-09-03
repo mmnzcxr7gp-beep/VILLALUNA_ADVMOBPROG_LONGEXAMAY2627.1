@@ -165,6 +165,7 @@ class _NewsfeedScreenState extends State<NewsfeedScreen> {
         );
 
         if (mounted) {
+          _postService.saveLocalPost(newPost);
           setState(() {
             _localPosts.insert(0, newPost);
             _posts.insert(0, newPost);
@@ -190,6 +191,7 @@ class _NewsfeedScreenState extends State<NewsfeedScreen> {
         );
 
         if (mounted) {
+          _postService.saveLocalPost(fallbackPost);
           setState(() {
             _localPosts.insert(0, fallbackPost);
             _posts.insert(0, fallbackPost);

@@ -42,7 +42,20 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   void initState() {
     super.initState();
+    PostService.postsChanged.addListener(_handlePostsChanged);
     _fetchUserPosts();
+  }
+
+  void _handlePostsChanged() {
+    if (mounted) {
+      _fetchUserPosts();
+    }
+  }
+
+  @override
+  void dispose() {
+    PostService.postsChanged.removeListener(_handlePostsChanged);
+    super.dispose();
   }
 
   Future<void> _fetchUserPosts() async {

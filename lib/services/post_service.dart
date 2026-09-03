@@ -1,7 +1,12 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../constants.dart';
 import '../models/post.dart';
+
+class PostChangeNotifier extends ChangeNotifier {
+  void notifyPostChanged() => notifyListeners();
+}
 
 class PostService {
   final http.Client _client;
@@ -9,10 +14,30 @@ class PostService {
   PostService({http.Client? client}) : _client = client ?? http.Client();
 
   static List<Post>? _cachedPosts;
+  static final List<Post> _createdPosts = [];
+  static final PostChangeNotifier postsChanged = PostChangeNotifier();
+
+  static List<Post> _mergeCreatedPosts(Iterable<Post> posts) {
+    final seenIds = <int>{};
+    return [
+      ..._createdPosts,
+      ...posts,
+    ].where((post) => seenIds.add(post.id)).toList();
+  }
+
+  static List<Post> _createdPostsForUser(int userId) {
+    return _createdPosts.where((post) => post.userId == userId).toList();
+  }
+
+  void saveLocalPost(Post post) {
+    _createdPosts.removeWhere((createdPost) => createdPost.id == post.id);
+    _createdPosts.insert(0, post);
+    postsChanged.notifyPostChanged();
+  }
 
   Future<List<Post>> getPosts({int limit = 30, int skip = 0, bool forceRefresh = false}) async {
     if (!forceRefresh && _cachedPosts != null && _cachedPosts!.isNotEmpty && skip == 0) {
-      return _cachedPosts!;
+      return _mergeCreatedPosts(_cachedPosts!);
     }
 
     final uri = Uri.parse('$host/posts?limit=$limit&skip=$skip');
@@ -27,14 +52,19 @@ class PostService {
         final list = postsJson.map((p) => Post.fromJson(p)).toList();
         if (skip == 0) {
           _cachedPosts = list;
+          return _mergeCreatedPosts(list);
         }
         return list;
       } else {
-        if (_cachedPosts != null && _cachedPosts!.isNotEmpty) return _cachedPosts!;
+        if (_cachedPosts != null && _cachedPosts!.isNotEmpty) {
+          return _mergeCreatedPosts(_cachedPosts!);
+        }
         throw Exception('Failed to load posts: ${response.statusCode}');
       }
     } catch (e) {
-      if (_cachedPosts != null && _cachedPosts!.isNotEmpty) return _cachedPosts!;
+      if (_cachedPosts != null && _cachedPosts!.isNotEmpty) {
+        return _mergeCreatedPosts(_cachedPosts!);
+      }
       rethrow;
     }
   }
@@ -49,7 +79,12 @@ class PostService {
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final List postsJson = data['posts'] ?? [];
-        return postsJson.map((p) => Post.fromJson(p)).toList();
+        final posts = postsJson.map((p) => Post.fromJson(p)).toList();
+        final userPosts = posts.where((post) => post.userId == userId);
+        return [
+          ..._createdPostsForUser(userId),
+          ...userPosts,
+        ];
       } else {
         throw Exception('Failed to load user posts: ${response.statusCode}');
       }
@@ -66,7 +101,9 @@ class PostService {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
-      return Post.fromJson(data);
+      final post = Post.fromJson(data);
+      saveLocalPost(post);
+      return post;
     } else {
       throw Exception('Failed to load post: ${response.statusCode}');
     }
