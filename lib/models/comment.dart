@@ -74,7 +74,7 @@ class Comment {
     int parsedLikes = (json['likes'] as num?)?.toInt() ?? 0;
     final reactions = json['reactions'];
     if (reactions is Map) {
-      final reactionMap = Map<String, dynamic>.from(reactions as Map<dynamic, dynamic>);
+      final reactionMap = Map<String, dynamic>.from(reactions);
       parsedLikes =
           (reactionMap['likes'] as num?)?.toInt() ??
           (reactionMap['like'] as num?)?.toInt() ??

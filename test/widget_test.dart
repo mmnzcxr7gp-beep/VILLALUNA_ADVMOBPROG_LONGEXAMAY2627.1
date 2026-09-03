@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:villaluna_advmobprog_longexam1/main.dart';
-import 'package:villaluna_advmobprog_longexam1/models/post.dart';
-import 'package:villaluna_advmobprog_longexam1/models/user.dart';
-import 'package:villaluna_advmobprog_longexam1/models/comment.dart';
+import 'package:villaluna_mobprog/main.dart';
+import 'package:villaluna_mobprog/models/post.dart';
+import 'package:villaluna_mobprog/models/user.dart';
+import 'package:villaluna_mobprog/models/comment.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
