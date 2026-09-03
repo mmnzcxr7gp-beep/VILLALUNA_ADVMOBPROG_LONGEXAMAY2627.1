@@ -33,11 +33,31 @@ class User {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
+    final rawUsername =
+        json['username'] ?? json['userName'] ?? json['user_name'] ?? '';
+    final rawFirstName =
+        json['firstName'] ?? json['first_name'] ?? json['firstname'] ?? '';
+    final rawLastName =
+        json['lastName'] ?? json['last_name'] ?? json['lastname'] ?? '';
+    final rawFullName = json['fullName'] ?? json['name'] ?? '';
+
+    final resolvedFirstName = rawFirstName.toString();
+    final resolvedLastName = rawLastName.toString();
+    final resolvedUsername = rawUsername.toString();
+    final resolvedFullName = rawFullName.toString().trim();
+    final fullNameParts = resolvedFullName.split(RegExp(r'\s+'));
+
     return User(
       id: (json['id'] as num?)?.toInt() ?? 0,
-      username: json['username']?.toString() ?? '',
-      firstName: json['firstName']?.toString() ?? '',
-      lastName: json['lastName']?.toString() ?? '',
+      username: resolvedUsername.isNotEmpty ? resolvedUsername : 'student',
+      firstName: resolvedFirstName.isNotEmpty
+          ? resolvedFirstName
+          : (fullNameParts.length > 1 ? fullNameParts.first : ''),
+      lastName: resolvedLastName.isNotEmpty
+          ? resolvedLastName
+          : (fullNameParts.length > 1
+              ? fullNameParts.sublist(1).join(' ')
+              : ''),
       email: json['email']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
       gender: json['gender']?.toString() ?? '',

@@ -10,12 +10,24 @@ class CommentUser {
   });
 
   factory CommentUser.fromJson(Map<String, dynamic> json) {
+    final rawUsername = json['username'] ?? json['userName'] ?? json['user_name'] ?? '';
+    final rawFirstName =
+        json['firstName'] ?? json['first_name'] ?? json['firstname'] ?? '';
+    final rawLastName =
+        json['lastName'] ?? json['last_name'] ?? json['lastname'] ?? '';
+    final rawFullName = json['fullName'] ?? json['name'] ?? '';
+    final candidateFullName = rawFullName.toString().trim();
+    final resolvedFullName = candidateFullName.isNotEmpty
+        ? candidateFullName
+        : (rawFirstName.toString().trim().isNotEmpty ||
+                rawLastName.toString().trim().isNotEmpty)
+            ? '${rawFirstName.toString().trim()} ${rawLastName.toString().trim()}'.trim()
+            : rawUsername.toString().trim();
+
     return CommentUser(
       id: (json['id'] as num?)?.toInt() ?? 0,
-      username: json['username']?.toString() ?? '',
-      fullName: json['fullName']?.toString() ??
-          json['username']?.toString() ??
-          'Community Member',
+      username: rawUsername.toString(),
+      fullName: resolvedFullName.isNotEmpty ? resolvedFullName : 'Community Member',
     );
   }
 
@@ -59,13 +71,23 @@ class Comment {
       );
     }
 
+    int parsedLikes = (json['likes'] as num?)?.toInt() ?? 0;
+    final reactions = json['reactions'];
+    if (reactions is Map) {
+      final reactionMap = Map<String, dynamic>.from(reactions as Map<dynamic, dynamic>);
+      parsedLikes =
+          (reactionMap['likes'] as num?)?.toInt() ??
+          (reactionMap['like'] as num?)?.toInt() ??
+          parsedLikes;
+    }
+
     return Comment(
       id: (json['id'] as num?)?.toInt() ?? 0,
       body: json['body']?.toString() ?? '',
       postId: (json['postId'] as num?)?.toInt() ??
           (json['post_id'] as num?)?.toInt() ??
           0,
-      likes: (json['likes'] as num?)?.toInt() ?? 0,
+      likes: parsedLikes,
       user: userObj,
       isLiked: false,
     );
@@ -76,6 +98,7 @@ class Comment {
         'body': body,
         'postId': postId,
         'likes': likes,
+        'reactions': {'likes': likes},
         'user': user.toJson(),
       };
 }

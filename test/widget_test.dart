@@ -73,6 +73,30 @@ void main() {
     expect(comment.user.fullName, 'Sam Irian Villaluna');
   });
 
+  test('Models handle alternate API field names and nested reactions', () {
+    final user = User.fromJson({
+      'id': 12,
+      'fullName': 'Jane Doe',
+      'email': 'jane@example.com',
+    });
+    expect(user.firstName, 'Jane');
+    expect(user.lastName, 'Doe');
+
+    final comment = Comment.fromJson({
+      'id': 202,
+      'body': 'Nice work',
+      'postId': 7,
+      'reactions': {'likes': 9},
+      'user': {
+        'id': 12,
+        'firstName': 'Jane',
+        'lastName': 'Doe',
+      },
+    });
+    expect(comment.likes, 9);
+    expect(comment.user.fullName, 'Jane Doe');
+  });
+
   testWidgets('App smoke test and splash screen rendering', (WidgetTester tester) async {
     await tester.pumpWidget(const VillalunaApp());
     expect(find.byType(VillalunaApp), findsOneWidget);

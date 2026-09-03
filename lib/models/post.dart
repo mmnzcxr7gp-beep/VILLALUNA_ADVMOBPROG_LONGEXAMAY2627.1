@@ -33,8 +33,15 @@ class Post {
 
     if (json['reactions'] != null) {
       if (json['reactions'] is Map) {
-        parsedLikes = (json['reactions']['likes'] as num?)?.toInt() ?? 0;
-        parsedDislikes = (json['reactions']['dislikes'] as num?)?.toInt() ?? 0;
+        final reactionMap = Map<String, dynamic>.from(json['reactions'] as Map);
+        parsedLikes =
+            (reactionMap['likes'] as num?)?.toInt() ??
+                (reactionMap['like'] as num?)?.toInt() ??
+                0;
+        parsedDislikes =
+            (reactionMap['dislikes'] as num?)?.toInt() ??
+                (reactionMap['dislike'] as num?)?.toInt() ??
+                0;
       } else if (json['reactions'] is num) {
         parsedLikes = (json['reactions'] as num).toInt();
       }
@@ -43,20 +50,35 @@ class Post {
       parsedDislikes = (json['dislikes'] as num?)?.toInt() ?? 0;
     }
 
-    final int postIdent = json['id'] ?? json['postId'] ?? json['post_id'] ?? 0;
+    final tags = (json['tags'] as List?)?.map((tag) {
+      if (tag is Map) {
+        return (tag['name'] ?? tag['value'] ?? tag['tag'] ?? '').toString();
+      }
+      return tag.toString();
+    }).where((tag) => tag.isNotEmpty).toList() ?? <String>[];
+
+    final int postIdent =
+        (json['id'] as num?)?.toInt() ??
+            (json['postId'] as num?)?.toInt() ??
+            (json['post_id'] as num?)?.toInt() ??
+            0;
 
     return Post(
       id: postIdent,
-      postId: json['postId'] ?? json['post_id'] ?? postIdent,
-      userId: json['userId'] ?? json['user_id'] ?? 0,
+      postId: (json['postId'] as num?)?.toInt() ??
+          (json['post_id'] as num?)?.toInt() ??
+          postIdent,
+      userId: (json['userId'] as num?)?.toInt() ??
+          (json['user_id'] as num?)?.toInt() ??
+          0,
       title: json['title']?.toString() ?? '',
       body: json['body']?.toString() ?? '',
-      tags: (json['tags'] as List?)?.map((t) => t.toString()).toList() ?? [],
+      tags: tags,
       likes: parsedLikes,
       dislikes: parsedDislikes,
       views: (json['views'] as num?)?.toInt() ?? 0,
-      createdAt: json['createdAt'] ?? json['created_at'] ?? '',
-      updatedAt: json['updatedAt'] ?? json['updated_at'] ?? '',
+      createdAt: json['createdAt']?.toString() ?? json['created_at']?.toString() ?? '',
+      updatedAt: json['updatedAt']?.toString() ?? json['updated_at']?.toString() ?? '',
       isLiked: false,
     );
   }
